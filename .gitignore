@@ -73,6 +73,12 @@ pids
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
+# Local working notes (never published; written in pt-BR)
+docs/local/
+
+# Local agent tooling (skills, agent config) — not part of the project
+.claude/
+
 # System files
 .DS_Store
 Thumbs.db
