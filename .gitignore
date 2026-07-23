@@ -43,11 +43,11 @@ testem.log
 !**/.vscode/mcp.json
 
 # dotenv environment variable files
+# .env.* catches .env.test, .env.local, .env.production and anything added later;
+# the template is the single exception and must stay versioned.
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
 
 # Angular
 # ** necessario: ver nota acima
