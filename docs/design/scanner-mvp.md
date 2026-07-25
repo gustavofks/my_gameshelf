@@ -23,6 +23,14 @@ own spec later:
 | 5 — Multi-user | Authentication; swap the fixed `userId` for the session's | Nothing — the column already exists |
 | 6 — Refinements | SSE instead of polling, deduplication, advanced search | — |
 
+**Known limitation — single region.** The parser stores `region` as one value,
+so a filename listing several regions — `Pokemon - White Version (USA, Europe)` —
+keeps only the first (`USA`) and drops the rest. Accepted for the MVP: the
+filename is a best-guess source that phase 3 metadata (No-Intro DATs by CRC32)
+will supersede with canonical data. A later refinement can widen this to a region
+list or a raw-region field; deferred rather than designed against a UI that does
+not exist yet.
+
 ### MVP success criteria
 
 1. `docker compose up` brings up dependencies with no manual steps.
