@@ -13,7 +13,13 @@ export const PLATFORMS: PlatformDefinition[] = [
   { slug: 'gba', name: 'Game Boy Advance', extensions: ['.gba'] },
   { slug: 'ds', name: 'Nintendo DS', extensions: ['.nds'] },
   { slug: 'md', name: 'Sega Mega Drive', extensions: ['.md', '.gen'] },
-  { slug: 'psx', name: 'PlayStation', extensions: ['.bin', '.cue', '.iso', '.chd'] },
+  {
+    slug: 'psx',
+    name: 'PlayStation',
+    extensions: ['.bin', '.cue', '.iso', '.chd'],
+  },
 ];
 
-export const ALL_KNOWN_EXTENSIONS: string[] = PLATFORMS.flatMap((p) => p.extensions);
+export const ALL_KNOWN_EXTENSIONS: string[] = PLATFORMS.flatMap(
+  (p) => p.extensions,
+);
