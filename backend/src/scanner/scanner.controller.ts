@@ -1,5 +1,9 @@
-import { Controller, Get, Post, Param, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, HttpCode } from '@nestjs/common';
 import { ScannerService } from './scanner.service';
+
+interface StartScanBody {
+  rootPath?: string;
+}
 
 @Controller('scans')
 export class ScannerController {
@@ -7,8 +11,8 @@ export class ScannerController {
 
   @Post()
   @HttpCode(202)
-  start() {
-    return this.scanner.start();
+  start(@Body() body: StartScanBody) {
+    return this.scanner.start(body?.rootPath);
   }
 
   @Get(':id')

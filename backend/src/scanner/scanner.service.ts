@@ -45,7 +45,7 @@ export class ScannerService implements OnApplicationBootstrap {
     }
   }
 
-  async start() {
+  async start(rootPathOverride?: string) {
     const active = await this.prisma.scanJob.findFirst({
       where: { userId: this.userId, status: { in: ['PENDING', 'RUNNING'] } },
     });
@@ -54,7 +54,9 @@ export class ScannerService implements OnApplicationBootstrap {
       throw new ConflictException('A scan is already running.');
     }
 
-    const rootPath = this.config.getOrThrow<string>('ROMS_ROOT_PATH');
+    const rootPath =
+      rootPathOverride?.trim() ||
+      this.config.getOrThrow<string>('ROMS_ROOT_PATH');
     const readable = await this.filesystem.isReadableDirectory(rootPath);
 
     if (!readable) {

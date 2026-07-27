@@ -88,6 +88,40 @@ describe('Scan API', () => {
     expect(gamesBody(games).items[0].title).toBe('Contra');
   });
 
+  it('scans a rootPath from the request body, overriding the env default', async () => {
+    // A second folder with a different game; the env still points at `root`.
+    const other = await mkdtemp(join(tmpdir(), 'scan-body-'));
+    await mkdir(join(other, 'snes'), { recursive: true });
+    await writeFile(join(other, 'snes', 'Chrono Trigger (USA).sfc'), 'rom-x');
+
+    try {
+      const accepted = await request(app.getHttpServer())
+        .post('/scans')
+        .send({ rootPath: other })
+        .expect(202);
+
+      const finished = await waitForCompletion(scanBody(accepted).id);
+      expect(finished.status).toBe('COMPLETED');
+
+      const games = await request(app.getHttpServer())
+        .get('/games')
+        .expect(200);
+      // The body path won: Chrono Trigger, not Contra from the env folder.
+      expect(gamesBody(games).items.map((g) => g.title)).toEqual([
+        'Chrono Trigger',
+      ]);
+    } finally {
+      await rm(other, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects an unreadable rootPath from the body with 400', async () => {
+    await request(app.getHttpServer())
+      .post('/scans')
+      .send({ rootPath: join(root, 'nope') })
+      .expect(400);
+  });
+
   it('rejects a second scan while one is running', async () => {
     await prisma.scanJob.create({
       data: { userId: TEST_USER_ID, rootPath: root, status: 'RUNNING' },
