@@ -29,8 +29,8 @@ npm run build                 # type-check + compile
 | Suite | Files | Tests | Result |
 |-------|-------|-------|--------|
 | Unit | 5 | 29 | ✅ pass |
-| Integration | 3 | 24 | ✅ pass |
-| **Automated total** | **8** | **53** | **✅ pass** |
+| Integration | 3 | 25 | ✅ pass |
+| **Automated total** | **8** | **54** | **✅ pass** |
 | ESLint (`src test`) | — | — | ✅ pass (exit 0) |
 | Build (`nest build`) | — | — | ✅ pass (exit 0) |
 
@@ -50,7 +50,7 @@ npm run build                 # type-check + compile
 |------|-------|--------|
 | `test/library.int-spec.ts` | 5 | `GET /games`: ordering, platform filter, search, `fileSize` as string, non-numeric pagination falls back to defaults |
 | `test/scanner-runner.int-spec.ts` | 10 | Persistence, idempotency, duplicate-content kept as two rows, rename relink, missing-file flag, classify-by-extension across folders, unknown-extension ignored, parse-fallback warning, unreadable root → FAILED |
-| `test/scanner-api.int-spec.ts` | 9 | `POST /scans` (202), progress polling, body `rootPath` override, 400 on bad path, 409 while running, DB rejects a second active job, new scan allowed after one finishes, 404 unknown id, orphan reconciliation |
+| `test/scanner-api.int-spec.ts` | 10 | `POST /scans` (202), progress polling, body `rootPath` override, 400 on bad path, 409 while running, DB rejects a second active job, race-losing insert (P2002) → 409, new scan allowed after one finishes, 404 unknown id, orphan reconciliation |
 
 ## Static checks
 

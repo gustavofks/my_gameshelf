@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { AppModule } from '../src/app.module';
 import { ScannerService } from '../src/scanner/scanner.service';
+import { PrismaService } from '../src/prisma/prisma.service';
 import { PLATFORMS } from '../src/platforms/platform.registry';
 import { prisma, resetDatabase, TEST_USER_ID } from './prisma-test-client';
 
@@ -142,6 +143,28 @@ describe('Scan API', () => {
         data: { userId: TEST_USER_ID, rootPath: root, status: 'PENDING' },
       }),
     ).rejects.toMatchObject({ code: 'P2002' });
+  });
+
+  it('converts the race-losing insert (P2002) into a 409', async () => {
+    // Simulate the race the partial index guards: an active job already exists,
+    // but the non-atomic pre-check misses it (findFirst returns null this once).
+    // Execution then reaches create(), the DB rejects it with P2002, and start()
+    // must translate that into a 409 — the code path the plain constraint test
+    // does not exercise.
+    await prisma.scanJob.create({
+      data: { userId: TEST_USER_ID, rootPath: root, status: 'RUNNING' },
+    });
+
+    const prismaService = app.get(PrismaService);
+    const spy = jest
+      .spyOn(prismaService.scanJob, 'findFirst')
+      .mockResolvedValueOnce(null);
+
+    try {
+      await request(app.getHttpServer()).post('/scans').expect(409);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('allows a new scan once the previous one is finished', async () => {
