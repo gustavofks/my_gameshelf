@@ -111,20 +111,51 @@ describe('ScannerRunner', () => {
     expect(missing.isMissing).toBe(true);
   });
 
-  it('records a warning for an unknown platform folder', async () => {
-    await mkdir(join(root, 'dreamcast'), { recursive: true });
-    await writeFile(join(root, 'dreamcast', 'Shenmue (USA).cdi'), 'rom-c');
+  it('classifies each file by its extension, ignoring the folder', async () => {
+    // A .gba and a .nds dropped inside the snes/ folder: the folder name is
+    // irrelevant, each file is catalogued under the platform of its extension.
+    await writeFile(join(root, 'snes', 'Metroid Fusion (USA).gba'), 'rom-gba');
+    await writeFile(join(root, 'snes', 'Mario Kart DS (USA).nds'), 'rom-nds');
+
+    await runScan();
+
+    const games = await prisma.game.findMany({
+      include: { platform: true },
+      orderBy: { title: 'asc' },
+    });
+    const byTitle = Object.fromEntries(
+      games.map((g) => [g.title, g.platform.slug]),
+    );
+    expect(byTitle['Metroid Fusion']).toBe('gba');
+    expect(byTitle['Mario Kart DS']).toBe('ds');
+    expect(byTitle['Chrono Trigger']).toBe('snes');
+    // Two real snes ROMs + the gba + the nds = 4.
+    await expect(prisma.game.count()).resolves.toBe(4);
+  });
+
+  it('ignores an unknown extension without recording an issue', async () => {
+    // .cdi belongs to no platform in the registry; it is clutter, not a warning.
+    await writeFile(join(root, 'snes', 'Shenmue (USA).cdi'), 'rom-cdi');
 
     const jobId = await runScan();
 
     const issues = await prisma.scanIssue.findMany({
       where: { scanJobId: jobId },
     });
-    expect(issues).toHaveLength(1);
-    expect(issues[0]).toMatchObject({
-      severity: 'WARNING',
-      code: 'UNKNOWN_PLATFORM_FOLDER',
+    expect(issues).toHaveLength(0);
+    // Only the two real snes ROMs are catalogued.
+    await expect(prisma.game.count()).resolves.toBe(2);
+  });
+
+  it('stays silent for non-ROM clutter', async () => {
+    // cover.jpg is created in beforeEach inside snes/. Its extension belongs to
+    // no platform, so it is ignored without any issue.
+    const jobId = await runScan();
+
+    const issues = await prisma.scanIssue.findMany({
+      where: { scanJobId: jobId },
     });
+    expect(issues).toHaveLength(0);
   });
 
   it('records a warning when no title can be derived', async () => {

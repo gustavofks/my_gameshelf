@@ -36,7 +36,7 @@ export class ScannerRunner {
       }
 
       const discovered = await this.filesystem.walk(job.rootPath);
-      const candidates = await this.selectCandidates(scanJobId, discovered);
+      const candidates = this.selectCandidates(discovered);
 
       await this.prisma.scanJob.update({
         where: { id: scanJobId },
@@ -79,33 +79,18 @@ export class ScannerRunner {
     }
   }
 
-  private async selectCandidates(
-    scanJobId: string,
+  private selectCandidates(
     discovered: DiscoveredFile[],
-  ): Promise<Array<DiscoveredFile & { platformSlug: string }>> {
+  ): Array<DiscoveredFile & { platformSlug: string }> {
     const candidates: Array<DiscoveredFile & { platformSlug: string }> = [];
-    const reportedFolders = new Set<string>();
 
     for (const file of discovered) {
-      const detection = detectPlatform(file.folder, file.extension, PLATFORMS);
+      const detection = detectPlatform(file.extension, PLATFORMS);
 
+      // Files whose extension no platform owns (cover art, saves, docs) are
+      // simply ignored — there is no folder concept to flag them against.
       if (detection.kind === 'match') {
         candidates.push({ ...file, platformSlug: detection.platform.slug });
-        continue;
-      }
-
-      if (
-        detection.kind === 'unknown-platform' &&
-        !reportedFolders.has(file.folder)
-      ) {
-        reportedFolders.add(file.folder);
-        await this.addIssue(
-          scanJobId,
-          'WARNING',
-          'UNKNOWN_PLATFORM_FOLDER',
-          file.folder,
-          `No platform is mapped to the folder "${file.folder}".`,
-        );
       }
     }
 

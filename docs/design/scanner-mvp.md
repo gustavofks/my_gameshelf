@@ -40,6 +40,14 @@ not exist yet.
 5. Problem files are skipped and **reported in the UI**, without failing the scan.
 6. The filename parser is covered by tests that need no database and no filesystem.
 
+### Demo page
+
+Before the Angular frontend exists (Plano 2), a single self-contained HTML file at
+`docs/demo/backend-demo.html` verifies the backend visually. Opened via `file://`
+with the API running, it triggers a real scan, shows progress and issues, and
+lists the catalog. It is a verification artifact — deliberately plain HTML, not
+the product frontend — kept so the working backend can be seen and screenshotted.
+
 ---
 
 ## 2. Locked decisions
@@ -49,10 +57,28 @@ not exist yet.
 | Database | PostgreSQL | User's choice |
 | ORM | Prisma | File-versioned migrations; types generated from the schema |
 | Users | Single user, with `userId` columns from day 1 | Makes multi-user a cutover, not a data migration |
-| On-disk layout | One folder per system (`roms/snes/`, `roms/nes/`) | RetroArch and EmulationStation convention |
+| Platform detection | By file **extension**, not folder name | Works for any folder layout, including mixed ones |
 | Scan execution | In-process in the MVP; queue in phase 2 | See below |
 | Architecture | Isolated domain core | Parser testable without mocks |
 | Game identity | File CRC32 | Survives renames and moves |
+
+### Platform detection is by extension, and it is provisional
+
+The scanner infers a file's platform from its **extension**, mapped through the
+static registry (`.nds → ds`, `.gba → gba`, `.sfc → snes`). The folder name is
+irrelevant: `rootPath` can point at the collection root, at a single platform
+folder, or at a messy folder mixing systems — every file is classified on its own.
+`walk` therefore recurses through the whole tree and returns every file at any
+depth; extensions the registry does not know (`.jpg`, `.txt`, `.sav`) are ignored.
+
+This is the same best-guess-then-canonical pattern used for **title** and
+**region**: the extension is a provisional signal that phase 3 metadata makes
+authoritative. No-Intro and Redump DATs are **per-system**, so matching a file's
+CRC32 against them resolves the platform for certain — including the case the
+extension cannot: shared disc extensions (`.iso`, `.bin`, `.cue`, `.chd`) that
+belong to several CD consoles (PS1 vs PS2). With today's cartridge-focused
+registry each extension maps to exactly one platform, so the provisional guess is
+already unambiguous; the DAT layer only matters once CD consoles are added.
 
 ### Why no queue in the MVP
 
@@ -216,7 +242,7 @@ model ScanIssue {
   id        String        @id @default(uuid())
   scanJobId String
   severity  IssueSeverity
-  code      String        // "UNREADABLE_FILE", "UNKNOWN_PLATFORM_FOLDER", "PARSE_FAILED"
+  code      String        // "UNREADABLE_FILE", "PARSE_FAILED"
   filePath  String?
   message   String
   createdAt DateTime      @default(now())
@@ -271,9 +297,14 @@ no migration has to invent an owner for existing rows.
 
 | Method | Route | Response |
 |--------|-------|----------|
-| `POST` | `/scans` | `202` + `{ id, status }` |
+| `POST` | `/scans` (optional body `{ rootPath }`) | `202` + `{ id, status }` |
 | `GET`  | `/scans/:id` | `{ status, filesFound, filesProcessed, errorMessage, issues[] }` |
 | `GET`  | `/games?platform=&search=&page=` | paginated catalog |
+
+`POST /scans` accepts an optional `rootPath` in the body; when omitted it falls
+back to the `ROMS_ROOT_PATH` environment variable. The path is user-supplied and
+validated only for readability — acceptable for a local single-user tool, and
+noted as a surface to revisit before any multi-user or hosted deployment.
 
 ### Happy path
 
@@ -339,12 +370,16 @@ DAT files, which makes this column the entry key for phase 3.
 
 | Situation | Behavior | Record |
 |-----------|----------|--------|
-| Unknown extension | Ignore | None |
-| Folder with no matching platform | Skip the folder | `ScanIssue` WARNING |
-| Unreadable file | Skip, continue | `ScanIssue` ERROR |
-| Filename parse failure | Fall back to the filename as title | `ScanIssue` WARNING |
+| Extension the registry does not know (`.jpg`, `.txt`, `.sav`) | Ignore | None |
+| Unreadable file | Skip, continue | `ScanIssue` ERROR (`UNREADABLE_FILE`) |
+| Filename parse failure | Fall back to the filename as title | `ScanIssue` WARNING (`PARSE_FAILED`) |
 | `rootPath` unreachable | `400` on POST, or `FAILED` if it disappears mid-run | `errorMessage` |
 | Database failure during a batch | `FAILED`; rows already written stay, and the next scan resumes | `errorMessage` |
+
+Because classification is by extension, there is no notion of a "wrong folder": a
+file is either a ROM the registry recognizes (catalogued under its extension's
+platform) or clutter it does not (ignored silently). The issue list stays limited
+to genuine per-file problems — unreadable bytes and untitled names.
 
 **Orphan reconciliation.** A process that dies mid-scan leaves a `ScanJob` stuck
 at `RUNNING`, and the `409` guard then blocks every future scan. Because

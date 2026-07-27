@@ -6,7 +6,6 @@ import { join, relative, extname, posix, sep } from 'node:path';
 export interface DiscoveredFile {
   relativePath: string;
   absolutePath: string;
-  folder: string;
   filename: string;
   extension: string;
   size: number;
@@ -24,39 +23,34 @@ export class FilesystemAdapter {
     }
   }
 
+  /**
+   * Returns every file under `rootPath` at any depth, including files that sit
+   * directly in `rootPath`. The platform is decided later from each file's
+   * extension, so the folder structure carries no meaning here.
+   */
   async walk(rootPath: string): Promise<DiscoveredFile[]> {
-    const folders = await readdir(rootPath, { withFileTypes: true });
+    const entries = await readdir(rootPath, {
+      withFileTypes: true,
+      recursive: true,
+    });
     const files: DiscoveredFile[] = [];
 
-    for (const folder of folders) {
-      if (!folder.isDirectory()) {
+    for (const entry of entries) {
+      if (!entry.isFile()) {
         continue;
       }
 
-      const folderPath = join(rootPath, folder.name);
-      const entries = await readdir(folderPath, {
-        withFileTypes: true,
-        recursive: true,
+      const absolutePath = join(entry.parentPath, entry.name);
+      const relativePath = relative(rootPath, absolutePath);
+      const stats = await stat(absolutePath);
+
+      files.push({
+        relativePath: relativePath.split(sep).join(posix.sep),
+        absolutePath,
+        filename: entry.name,
+        extension: extname(entry.name).toLowerCase(),
+        size: stats.size,
       });
-
-      for (const entry of entries) {
-        if (!entry.isFile()) {
-          continue;
-        }
-
-        const absolutePath = join(entry.parentPath, entry.name);
-        const relativePath = relative(rootPath, absolutePath);
-        const stats = await stat(absolutePath);
-
-        files.push({
-          relativePath: relativePath.split(sep).join(posix.sep),
-          absolutePath,
-          folder: folder.name,
-          filename: entry.name,
-          extension: extname(entry.name).toLowerCase(),
-          size: stats.size,
-        });
-      }
     }
 
     return files;

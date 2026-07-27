@@ -23,3 +23,17 @@ export const PLATFORMS: PlatformDefinition[] = [
 export const ALL_KNOWN_EXTENSIONS: string[] = PLATFORMS.flatMap(
   (p) => p.extensions,
 );
+
+/**
+ * Reverse index: lowercase extension → the platform that owns it. Built from
+ * PLATFORMS, so it stays in sync when platforms are added. With the current
+ * cartridge-focused registry every extension maps to exactly one platform.
+ */
+export const EXTENSION_TO_PLATFORM: ReadonlyMap<string, PlatformDefinition> =
+  new Map(
+    PLATFORMS.flatMap((platform) =>
+      platform.extensions.map(
+        (extension) => [extension.toLowerCase(), platform] as const,
+      ),
+    ),
+  );

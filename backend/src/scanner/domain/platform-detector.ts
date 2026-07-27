@@ -2,23 +2,25 @@ import type { PlatformDefinition } from '../../platforms/platform.registry';
 
 export type DetectionResult =
   | { kind: 'match'; platform: PlatformDefinition }
-  | { kind: 'unknown-platform' }
-  | { kind: 'ignored-extension' };
+  | { kind: 'unknown-extension' };
 
+/**
+ * Resolves a file's platform from its extension alone — the folder it lives in
+ * plays no part, so a mixed folder classifies each file correctly. An extension
+ * no platform owns (cover art, saves, docs) is reported as unknown and ignored
+ * by the caller.
+ */
 export function detectPlatform(
-  folderName: string,
   extension: string,
   platforms: PlatformDefinition[],
 ): DetectionResult {
-  const slug = folderName.toLowerCase();
-  const platform = platforms.find((candidate) => candidate.slug === slug);
+  const normalized = extension.toLowerCase();
+  const platform = platforms.find((candidate) =>
+    candidate.extensions.includes(normalized),
+  );
 
   if (!platform) {
-    return { kind: 'unknown-platform' };
-  }
-
-  if (!platform.extensions.includes(extension.toLowerCase())) {
-    return { kind: 'ignored-extension' };
+    return { kind: 'unknown-extension' };
   }
 
   return { kind: 'match', platform };
