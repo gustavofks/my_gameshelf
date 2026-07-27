@@ -47,7 +47,7 @@ export class ScannerRunner {
       for (let index = 0; index < candidates.length; index += BATCH_SIZE) {
         const batch = candidates.slice(index, index + BATCH_SIZE);
         for (const candidate of batch) {
-          await this.persist(scanJobId, job.userId, candidate);
+          await this.persist(scanJobId, job.userId, startedAt, candidate);
           processed += 1;
         }
         await this.prisma.scanJob.update({
@@ -68,14 +68,24 @@ export class ScannerRunner {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error(`Scan ${scanJobId} failed: ${message}`);
-      await this.prisma.scanJob.update({
-        where: { id: scanJobId },
-        data: {
-          status: 'FAILED',
-          errorMessage: message,
-          finishedAt: new Date(),
-        },
-      });
+      // This write is the last line of defence and must not throw: run() is
+      // dispatched with `void`, so a rejection here would escape as an unhandled
+      // promise rejection and crash the process. Swallow a double failure.
+      try {
+        await this.prisma.scanJob.update({
+          where: { id: scanJobId },
+          data: {
+            status: 'FAILED',
+            errorMessage: message,
+            finishedAt: new Date(),
+          },
+        });
+      } catch (writeError) {
+        this.logger.error(
+          `Could not record failure for scan ${scanJobId}`,
+          writeError,
+        );
+      }
     }
   }
 
@@ -100,6 +110,7 @@ export class ScannerRunner {
   private async persist(
     scanJobId: string,
     userId: string,
+    startedAt: Date,
     file: DiscoveredFile & { platformSlug: string },
   ): Promise<void> {
     let checksum: string | null = null;
@@ -154,8 +165,11 @@ export class ScannerRunner {
       return;
     }
 
+    // Only a record from an EARLIER scan can be a rename of this file. Rows
+    // already touched in this run (lastSeenAt >= startedAt) are excluded, so two
+    // identical-content files in one scan stay two separate records.
     const byChecksum = await this.prisma.game.findFirst({
-      where: { userId, crc32: checksum },
+      where: { userId, crc32: checksum, lastSeenAt: { lt: startedAt } },
       orderBy: { createdAt: 'asc' },
     });
 

@@ -79,6 +79,32 @@ describe('ScannerRunner', () => {
     await expect(prisma.game.count()).resolves.toBe(2);
   });
 
+  it('keeps two identical-content files as two separate records', async () => {
+    // Same bytes, different paths — a real collection can hold duplicate copies.
+    // Within one scan they must NOT collapse into a single row via the crc32
+    // relink; that path is only for a file seen in an EARLIER scan.
+    await writeFile(
+      join(root, 'snes', 'Chrono Trigger (U) (copy).sfc'),
+      'rom-a',
+    );
+
+    await runScan();
+
+    const copies = await prisma.game.findMany({
+      where: { crc32: { not: null } },
+      orderBy: { filePath: 'asc' },
+    });
+    const chronoPaths = copies
+      .filter((g) => g.title === 'Chrono Trigger')
+      .map((g) => g.filePath);
+    expect(chronoPaths).toEqual([
+      'snes/Chrono Trigger (U) (copy).sfc',
+      'snes/Chrono Trigger (USA).sfc',
+    ]);
+    // 2 chrono copies + super metroid = 3 rows.
+    await expect(prisma.game.count()).resolves.toBe(3);
+  });
+
   it('relinks a renamed file instead of duplicating it', async () => {
     await runScan();
     const before = await prisma.game.findFirstOrThrow({
