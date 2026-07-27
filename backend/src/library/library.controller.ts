@@ -1,6 +1,15 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { LibraryService } from './library.service';
 
+/** Parses a query string to a finite number, or undefined for junk like "abc". */
+function toNumber(value?: string): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 @Controller('games')
 export class LibraryController {
   constructor(private readonly library: LibraryService) {}
@@ -15,8 +24,8 @@ export class LibraryController {
     return this.library.list({
       platform,
       search,
-      page: page ? Number(page) : undefined,
-      pageSize: pageSize ? Number(pageSize) : undefined,
+      page: toNumber(page),
+      pageSize: toNumber(pageSize),
     });
   }
 }

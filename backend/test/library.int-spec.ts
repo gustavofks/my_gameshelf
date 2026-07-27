@@ -93,4 +93,13 @@ describe('GET /games', () => {
       .expect(200);
     expect(typeof body(response).items[0].fileSize).toBe('string');
   });
+
+  it('falls back to defaults for non-numeric pagination instead of crashing', async () => {
+    // Number('abc') is NaN; it must not reach Prisma as skip/take (a 500).
+    const response = await request(app.getHttpServer())
+      .get('/games?page=abc&pageSize=xyz')
+      .expect(200);
+    expect(body(response).total).toBe(2);
+    expect(body(response).items).toHaveLength(2);
+  });
 });
