@@ -32,4 +32,19 @@ export default tseslint.config(
       "prettier/prettier": ["error", { endOfLine: "auto" }],
     },
   },
+  {
+    files: ['src/**/domain/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: ['@nestjs/*'], message: 'domain/ must stay free of Nest' },
+            { group: ['@prisma/*'], message: 'domain/ must stay free of Prisma' },
+            { group: ['fs', 'node:fs', 'fs/promises', 'node:fs/promises'], message: 'domain/ must not touch the filesystem' },
+          ],
+        },
+      ],
+    },
+  },
 );

@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  games    Game[]
+  scanJobs ScanJob[]
+}
+
+model Platform {
+  id   Int    @id @default(autoincrement())
+  slug String @unique
+  name String
+
+  games Game[]
+}
+
+model Game {
+  id         String @id @default(uuid())
+  userId     String
+  platformId Int
+
+  title      String
+  region     String?
+  filePath   String
+  fileSize   BigInt
+  crc32      String?
+  discNumber Int?
+  revision   String?
+
+  lastSeenAt DateTime
+  isMissing  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id])
+  platform Platform @relation(fields: [platformId], references: [id])
+
+  @@unique([userId, filePath])
+  @@index([userId, crc32])
+  @@index([userId, platformId])
+}
+
+model ScanJob {
+  id             String     @id @default(uuid())
+  userId         String
+  status         ScanStatus @default(PENDING)
+  rootPath       String
+  filesFound     Int        @default(0)
+  filesProcessed Int        @default(0)
+  errorMessage   String?
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime   @default(now())
+
+  user   User        @relation(fields: [userId], references: [id])
+  issues ScanIssue[]
+}
+
+model ScanIssue {
+  id        String        @id @default(uuid())
+  scanJobId String
+  severity  IssueSeverity
+  code      String
+  filePath  String?
+  message   String
+  createdAt DateTime      @default(now())
+
+  scanJob ScanJob @relation(fields: [scanJobId], references: [id], onDelete: Cascade)
+}
+
+enum ScanStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum IssueSeverity {
+  WARNING
+  ERROR
+}
