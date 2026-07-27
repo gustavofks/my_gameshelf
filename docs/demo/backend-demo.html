@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>my_gameshelf — demo do backend</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --border: #262b36;
+    --text: #e6e9ef; --muted: #8b93a7; --accent: #6ea8fe;
+    --ok: #3fb950; --warn: #d29922; --err: #f85149;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font: 14px/1.5 system-ui, sans-serif;
+    background: var(--bg); color: var(--text); padding: 24px;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  button {
+    background: var(--accent); color: #08101f; border: 0; border-radius: 6px;
+    padding: 9px 16px; font-weight: 600; cursor: pointer;
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  input {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); padding: 8px 10px; min-width: 220px;
+  }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+  .bar { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; margin-top: 8px; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  .status { font-variant-numeric: tabular-nums; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+  .s-COMPLETED { background: rgba(63,185,80,.15); color: var(--ok); }
+  .s-RUNNING, .s-PENDING { background: rgba(110,168,254,.15); color: var(--accent); }
+  .s-FAILED { background: rgba(248,81,73,.15); color: var(--err); }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  td.mono { font-family: ui-monospace, monospace; color: var(--muted); font-size: 13px; }
+  .miss { color: var(--err); }
+  .count { color: var(--muted); font-size: 13px; }
+  .issues { color: var(--warn); font-size: 13px; margin-top: 8px; }
+  .err { color: var(--err); }
+</style>
+</head>
+<body>
+  <h1>my_gameshelf — demo do backend</h1>
+  <p class="sub">Prova visual do scanner. Requer a API em <code>npm run start:dev</code> e o Postgres no Docker.</p>
+
+  <div class="row">
+    <label>API: <input id="api" value="http://localhost:3000" /></label>
+    <button id="scan">Escanear ROMs</button>
+    <button id="refresh">Recarregar catálogo</button>
+  </div>
+
+  <div class="row">
+    <label>Pasta (opcional):
+      <input id="rootPath" placeholder="ex: C:/roms — vazio usa ROMS_ROOT_PATH do .env" style="min-width:380px" />
+    </label>
+  </div>
+
+  <div class="panel" id="scanPanel" hidden>
+    <div class="row" style="margin:0; justify-content: space-between;">
+      <strong>Scan</strong>
+      <span class="status"><span id="stPill" class="pill"></span> <span id="stText"></span></span>
+    </div>
+    <div class="bar"><i id="stBar"></i></div>
+    <div class="issues" id="stIssues"></div>
+  </div>
+
+  <div class="panel">
+    <div class="row" style="margin:0; justify-content: space-between;">
+      <strong>Catálogo</strong>
+      <span class="count" id="total"></span>
+    </div>
+    <div id="tableWrap" style="overflow-x:auto; margin-top: 12px;"></div>
+  </div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const api = () => $('api').value.replace(/\/$/, '');
+
+async function loadCatalog() {
+  try {
+    const res = await fetch(`${api()}/games?pageSize=200`);
+    const data = await res.json();
+    $('total').textContent = `${data.total} jogo(s)`;
+    const rows = data.items.map((g) => `
+      <tr>
+        <td>${esc(g.title)}</td>
+        <td>${g.platform.slug}</td>
+        <td>${g.region ?? '—'}</td>
+        <td>${g.revision ?? '—'}</td>
+        <td class="mono">${g.crc32 ?? '—'}</td>
+        <td>${g.isMissing ? '<span class="miss">sumido</span>' : 'ok'}</td>
+      </tr>`).join('');
+    $('tableWrap').innerHTML = `<table>
+      <thead><tr><th>Título</th><th>Plataforma</th><th>Região</th><th>Rev</th><th>CRC32</th><th>Estado</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="6" class="count">catálogo vazio — clique em Escanear</td></tr>'}</tbody>
+    </table>`;
+  } catch (e) {
+    $('tableWrap').innerHTML = `<p class="err">Falha ao chamar a API: ${esc(String(e))}. A API está rodando?</p>`;
+  }
+}
+
+async function poll(id) {
+  const res = await fetch(`${api()}/scans/${id}`);
+  const j = await res.json();
+  $('stPill').className = `pill s-${j.status}`;
+  $('stPill').textContent = j.status;
+  const pct = j.filesFound ? Math.round((j.filesProcessed / j.filesFound) * 100) : 0;
+  $('stText').textContent = `${j.filesProcessed}/${j.filesFound}`;
+  $('stBar').style.width = `${pct}%`;
+  if (j.issues?.length) {
+    $('stIssues').textContent = `${j.issues.length} aviso(s): ` +
+      j.issues.map((i) => `${i.code} (${i.filePath ?? ''})`).join(', ');
+  } else {
+    $('stIssues').textContent = '';
+  }
+  if (j.status === 'COMPLETED' || j.status === 'FAILED') {
+    if (j.status === 'FAILED') $('stIssues').innerHTML = `<span class="err">${esc(j.errorMessage ?? 'falhou')}</span>`;
+    $('scan').disabled = false;
+    await loadCatalog();
+    return;
+  }
+  setTimeout(() => poll(id), 500);
+}
+
+async function startScan() {
+  $('scan').disabled = true;
+  $('scanPanel').hidden = false;
+  try {
+    const rootPath = $('rootPath').value.trim();
+    const res = await fetch(`${api()}/scans`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rootPath ? { rootPath } : {}),
+    });
+    if (res.status === 409) { $('stIssues').innerHTML = '<span class="err">Já existe um scan rodando.</span>'; $('scan').disabled = false; return; }
+    if (res.status === 400) { $('stIssues').innerHTML = '<span class="err">ROMS_ROOT_PATH inválido (400).</span>'; $('scan').disabled = false; return; }
+    const j = await res.json();
+    poll(j.id);
+  } catch (e) {
+    $('stIssues').innerHTML = `<span class="err">${esc(String(e))}</span>`;
+    $('scan').disabled = false;
+  }
+}
+
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+
+$('scan').onclick = startScan;
+$('refresh').onclick = loadCatalog;
+loadCatalog();
+</script>
+</body>
+</html>
