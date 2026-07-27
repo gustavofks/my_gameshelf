@@ -28,9 +28,9 @@ npm run build                 # type-check + compile
 
 | Suite | Files | Tests | Result |
 |-------|-------|-------|--------|
-| Unit | 4 | 28 | ✅ pass |
-| Integration | 3 | 20 | ✅ pass |
-| **Automated total** | **7** | **48** | **✅ pass** |
+| Unit | 5 | 29 | ✅ pass |
+| Integration | 3 | 24 | ✅ pass |
+| **Automated total** | **8** | **53** | **✅ pass** |
 | ESLint (`src test`) | — | — | ✅ pass (exit 0) |
 | Build (`nest build`) | — | — | ✅ pass (exit 0) |
 
@@ -42,14 +42,15 @@ npm run build                 # type-check + compile
 | `src/scanner/domain/platform-detector.spec.ts` | 5 | Extension → platform, case-insensitive, unknown extension |
 | `src/scanner/infra/crc32.spec.ts` | 3 | Streaming CRC32: known value, 8-hex padding, cross-chunk consistency |
 | `src/scanner/infra/filesystem.adapter.spec.ts` | 4 | Recursive walk at any depth, path normalization, readability check |
+| `src/scanner/scanner.runner.spec.ts` | 1 | Error containment: `run()` never rejects even if writing the FAILED status fails |
 
 ## Integration tests — real PostgreSQL (`gameshelf_test`)
 
 | File | Tests | Covers |
 |------|-------|--------|
-| `test/library.int-spec.ts` | 4 | `GET /games`: ordering, platform filter, search, `fileSize` as string |
-| `test/scanner-runner.int-spec.ts` | 9 | Persistence, idempotency, rename relink, missing-file flag, classify-by-extension across folders, unknown-extension ignored, parse-fallback warning, unreadable root → FAILED |
-| `test/scanner-api.int-spec.ts` | 7 | `POST /scans` (202), progress polling, body `rootPath` override, 400 on bad path, 409 while running, 404 unknown id, orphan reconciliation |
+| `test/library.int-spec.ts` | 5 | `GET /games`: ordering, platform filter, search, `fileSize` as string, non-numeric pagination falls back to defaults |
+| `test/scanner-runner.int-spec.ts` | 10 | Persistence, idempotency, duplicate-content kept as two rows, rename relink, missing-file flag, classify-by-extension across folders, unknown-extension ignored, parse-fallback warning, unreadable root → FAILED |
+| `test/scanner-api.int-spec.ts` | 9 | `POST /scans` (202), progress polling, body `rootPath` override, 400 on bad path, 409 while running, DB rejects a second active job, new scan allowed after one finishes, 404 unknown id, orphan reconciliation |
 
 ## Static checks
 
