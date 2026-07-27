@@ -130,6 +130,33 @@ describe('Scan API', () => {
     await request(app.getHttpServer()).post('/scans').expect(409);
   });
 
+  it('lets the database reject a second active job (race safety net)', async () => {
+    // The 409 check-then-create is not atomic; a partial unique index is the
+    // backstop so two racing requests cannot both open an active scan.
+    await prisma.scanJob.create({
+      data: { userId: TEST_USER_ID, rootPath: root, status: 'RUNNING' },
+    });
+
+    await expect(
+      prisma.scanJob.create({
+        data: { userId: TEST_USER_ID, rootPath: root, status: 'PENDING' },
+      }),
+    ).rejects.toMatchObject({ code: 'P2002' });
+  });
+
+  it('allows a new scan once the previous one is finished', async () => {
+    // A COMPLETED job must not block a new one — the index only covers active
+    // states (PENDING/RUNNING).
+    await prisma.scanJob.create({
+      data: { userId: TEST_USER_ID, rootPath: root, status: 'COMPLETED' },
+    });
+
+    const accepted = await request(app.getHttpServer())
+      .post('/scans')
+      .expect(202);
+    await waitForCompletion(scanBody(accepted).id);
+  });
+
   it('rejects an unreadable root path with 400', async () => {
     process.env.ROMS_ROOT_PATH = join(root, 'nope');
 

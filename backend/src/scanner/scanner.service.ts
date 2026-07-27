@@ -7,6 +7,7 @@ import {
   OnApplicationBootstrap,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Prisma, type ScanJob } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ScannerRunner } from './scanner.runner';
 import { FilesystemAdapter } from './infra/filesystem.adapter';
@@ -63,9 +64,23 @@ export class ScannerService implements OnApplicationBootstrap {
       throw new BadRequestException(`Root path is not readable: ${rootPath}`);
     }
 
-    const job = await this.prisma.scanJob.create({
-      data: { userId: this.userId, rootPath },
-    });
+    let job: ScanJob;
+    try {
+      job = await this.prisma.scanJob.create({
+        data: { userId: this.userId, rootPath },
+      });
+    } catch (error) {
+      // The pre-check above is not atomic; the partial unique index
+      // ScanJob_one_active_per_user is the backstop. A racing request that
+      // slipped past the pre-check lands here as a P2002 — surface it as 409.
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('A scan is already running.');
+      }
+      throw error;
+    }
 
     void this.runner.run(job.id);
 
