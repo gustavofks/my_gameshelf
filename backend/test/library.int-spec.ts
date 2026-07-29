@@ -103,3 +103,53 @@ describe('GET /games', () => {
     expect(body(response).items).toHaveLength(2);
   });
 });
+
+describe('GET /platforms', () => {
+  let app: INestApplication;
+
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+    app = moduleRef.createNestApplication();
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  beforeEach(async () => {
+    await resetDatabase();
+    const snes = await prisma.platform.create({
+      data: { slug: 'snes', name: 'Super Nintendo' },
+    });
+    await prisma.platform.create({ data: { slug: 'nes', name: 'NES' } });
+    await prisma.game.create({
+      data: {
+        userId: TEST_USER_ID,
+        platformId: snes.id,
+        title: 'Chrono Trigger',
+        filePath: 'snes/ct.sfc',
+        fileSize: BigInt(1),
+        lastSeenAt: new Date(),
+      },
+    });
+  });
+
+  it('lists platforms with the per-user game count', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/platforms')
+      .expect(200);
+    const body = res.body as Array<{
+      slug: string;
+      name: string;
+      gameCount: number;
+    }>;
+    expect(body.find((p) => p.slug === 'snes')).toMatchObject({
+      name: 'Super Nintendo',
+      gameCount: 1,
+    });
+    expect(body.find((p) => p.slug === 'nes')).toMatchObject({ gameCount: 0 });
+  });
+});

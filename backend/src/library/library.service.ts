@@ -62,4 +62,18 @@ export class LibraryService {
       })),
     };
   }
+
+  async listPlatforms() {
+    const platforms = await this.prisma.platform.findMany({
+      orderBy: { name: 'asc' },
+      include: {
+        _count: { select: { games: { where: { userId: this.userId } } } },
+      },
+    });
+    return platforms.map((platform) => ({
+      slug: platform.slug,
+      name: platform.name,
+      gameCount: platform._count.games,
+    }));
+  }
 }
