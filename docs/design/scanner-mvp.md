@@ -300,6 +300,11 @@ no migration has to invent an owner for existing rows.
 | `POST` | `/scans` (optional body `{ rootPath }`) | `202` + `{ id, status }` |
 | `GET`  | `/scans/:id` | `{ status, filesFound, filesProcessed, errorMessage, issues[] }` |
 | `GET`  | `/games?platform=&search=&page=` | paginated catalog |
+| `GET`  | `/platforms` | `[{ slug, name, gameCount }]` for the current user |
+
+`GET /platforms` lists the platforms with their catalogued game count, so the
+frontend's console rail can show the consoles that actually have games. It is a
+read model over `Platform` + a per-user `Game` count, scoped to the fixed user.
 
 `POST /scans` accepts an optional `rootPath` in the body; when omitted it falls
 back to the `ROMS_ROOT_PATH` environment variable. The path is user-supplied and

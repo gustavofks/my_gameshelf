@@ -157,6 +157,7 @@ frontend/src/app/
     api/
       api.types.ts             response types mirroring the backend
       games-api.service.ts     GET /games
+      platforms-api.service.ts GET /platforms
       scan-api.service.ts      POST /scans, GET /scans/:id
     notification/
       notification.service.ts  central toasts
@@ -219,9 +220,15 @@ Thin services that speak HTTP and return typed values. `HttpClient` provided in
 
 ```
 GamesApiService.list({ platform?, search?, page? })  → GET /games
+PlatformsApiService.list()                            → GET /platforms → [{ slug, name, gameCount }]
 ScanApiService.start(rootPath?)                       → POST /scans → { id }
 ScanApiService.status(id)                             → GET /scans/:id
 ```
+
+The console rail is fed by `GET /platforms` and shows only platforms with
+`gameCount > 0` (ESDE-style: you see the consoles your collection actually has).
+An empty library therefore shows an empty rail, which routes into the scan
+onboarding.
 
 In development, `ng serve` uses a **proxy** (`proxy.conf.json`) mapping `/games`
 and `/scans` to `localhost:3000`, so the API URL stays relative — no CORS, no
