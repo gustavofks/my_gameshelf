@@ -1,1 +1,27 @@
-{}
+{
+  "nav": {
+    "library": "Biblioteca",
+    "backlog": "Backlog",
+    "organizer": "Organizador",
+    "settings": "Configurações"
+  },
+  "library": {
+    "empty": "Sua biblioteca está vazia",
+    "pick": "Escolha um console à esquerda",
+    "scan": "Escanear agora",
+    "failed": "Falha ao carregar os jogos",
+    "noGames": "Nenhum jogo aqui ainda"
+  },
+  "scan": {
+    "title": "Escanear",
+    "subtitle": "Indexe suas pastas de ROMs na biblioteca",
+    "action": "Escanear",
+    "folder": "Pasta (opcional, vazio = padrão do servidor)"
+  },
+  "settings": {
+    "language": "Idioma"
+  },
+  "wip": {
+    "label": "Trabalho em andamento"
+  }
+}

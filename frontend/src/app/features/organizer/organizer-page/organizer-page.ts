@@ -5,6 +5,6 @@ import { WipPlaceholder } from '../../../shared/ui/wip-placeholder/wip-placehold
   selector: 'app-organizer-page',
   standalone: true,
   imports: [WipPlaceholder],
-  template: `<app-wip-placeholder title="Organizer" />`,
+  template: `<app-wip-placeholder title="nav.organizer" />`,
 })
 export class OrganizerPage {}

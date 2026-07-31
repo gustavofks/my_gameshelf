@@ -5,6 +5,6 @@ import { WipPlaceholder } from '../../../shared/ui/wip-placeholder/wip-placehold
   selector: 'app-backlog-page',
   standalone: true,
   imports: [WipPlaceholder],
-  template: `<app-wip-placeholder title="Backlog" />`,
+  template: `<app-wip-placeholder title="nav.backlog" />`,
 })
 export class BacklogPage {}

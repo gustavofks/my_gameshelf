@@ -3,24 +3,27 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, switchMap, takeWhile, timer } from 'rxjs';
 import { ScanApiService } from '../../../core/api/scan-api.service';
 import { ScanJob } from '../../../core/api/api.types';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { ScanProgress } from '../scan-progress/scan-progress';
 import { ScanIssues } from '../scan-issues/scan-issues';
 
 @Component({
   selector: 'app-scan-page',
   standalone: true,
-  imports: [ScanProgress, ScanIssues],
+  imports: [ScanProgress, ScanIssues, TranslocoDirective],
   template: `
-    <div class="mx-auto max-w-2xl p-6">
-      <h1 class="font-display text-lg uppercase tracking-widest text-accent">Scan</h1>
+    <div class="mx-auto max-w-2xl p-6" *transloco="let t">
+      <h1 class="font-display text-lg uppercase tracking-widest text-accent">
+        {{ t('scan.title') }}
+      </h1>
       <p class="mb-6 mt-1 font-sans text-sm text-fg/60">
-        Index your ROM folders into the library
+        {{ t('scan.subtitle') }}
       </p>
 
       <div class="mb-4 flex gap-2">
         <input
           #path
-          placeholder="Folder (optional, blank = server default)"
+          [placeholder]="t('scan.folder')"
           class="min-w-0 flex-1 rounded border border-line bg-panel px-3 py-2 font-sans text-sm text-fg placeholder:text-fg/40 focus:border-accent focus-visible:outline focus-visible:outline-accent"
         />
         <button
@@ -28,7 +31,7 @@ import { ScanIssues } from '../scan-issues/scan-issues';
           [disabled]="running()"
           class="rounded bg-accent px-4 py-2 font-display text-xs uppercase tracking-widest text-ink hover:brightness-110 disabled:opacity-50"
         >
-          Scan
+          {{ t('scan.action') }}
         </button>
       </div>
 

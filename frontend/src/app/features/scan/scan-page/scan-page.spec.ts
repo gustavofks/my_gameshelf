@@ -5,6 +5,7 @@ import {
   provideHttpClientTesting,
   HttpTestingController,
 } from '@angular/common/http/testing';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 import { ScanPage } from './scan-page';
 
 describe('ScanPage', () => {
@@ -12,7 +13,13 @@ describe('ScanPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ScanPage],
+      imports: [
+        ScanPage,
+        TranslocoTestingModule.forRoot({
+          langs: { en: {} },
+          translocoConfig: { availableLangs: ['en', 'pt'], defaultLang: 'en' },
+        }),
+      ],
       providers: [
         provideRouter([]),
         provideHttpClient(),

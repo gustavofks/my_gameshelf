@@ -1,1 +1,27 @@
-{}
+{
+  "nav": {
+    "library": "Library",
+    "backlog": "Backlog",
+    "organizer": "Organizer",
+    "settings": "Settings"
+  },
+  "library": {
+    "empty": "Your library is empty",
+    "pick": "Pick a console from the left",
+    "scan": "Scan now",
+    "failed": "Failed to load games",
+    "noGames": "No games here yet"
+  },
+  "scan": {
+    "title": "Scan",
+    "subtitle": "Index your ROM folders into the library",
+    "action": "Scan",
+    "folder": "Folder (optional, blank = server default)"
+  },
+  "settings": {
+    "language": "Language"
+  },
+  "wip": {
+    "label": "Work in progress"
+  }
+}
