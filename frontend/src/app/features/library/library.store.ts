@@ -16,7 +16,11 @@ export class LibraryStore {
     this.router.events.pipe(
       filter((e) => e instanceof NavigationEnd),
       startWith(null),
-      map(() => this.route.firstChild?.snapshot.paramMap.get('platformSlug') ?? null),
+      map(
+        // firstChild.snapshot is only assigned once the child route is
+        // activated; during the store's construction it can still be undefined.
+        () => this.route.firstChild?.snapshot?.paramMap.get('platformSlug') ?? null,
+      ),
     ),
     { initialValue: null },
   );
