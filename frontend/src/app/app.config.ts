@@ -1,5 +1,6 @@
 import {
   ApplicationConfig,
+  provideAppInitializer,
   provideBrowserGlobalErrorListeners,
   isDevMode,
 } from '@angular/core';
@@ -9,6 +10,7 @@ import { provideTransloco } from '@jsverse/transloco';
 import { routes } from './app.routes';
 import { httpErrorInterceptor } from './core/error/http-error.interceptor';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
+import { initLanguage } from './core/i18n/lang';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -24,5 +26,6 @@ export const appConfig: ApplicationConfig = {
       },
       loader: TranslocoHttpLoader,
     }),
+    provideAppInitializer(initLanguage),
   ],
 };

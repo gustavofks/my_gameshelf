@@ -1,8 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoService } from '@jsverse/transloco';
-
-const STORAGE_KEY = 'gameshelf.lang';
+import { LANG_STORAGE_KEY } from '../../core/i18n/lang';
 
 @Component({
   selector: 'app-language-toggle',
@@ -35,10 +34,8 @@ export class LanguageToggle {
   readonly active = signal(this.transloco.getActiveLang());
 
   constructor() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const initial = saved ?? this.browserLang();
-    this.setLang(initial);
-    // Keep every toggle instance in sync (sidebar + settings render one each).
+    // The initial language is resolved at bootstrap (see core/i18n/lang.ts);
+    // here we only mirror changes so every toggle instance stays in sync.
     this.transloco.langChanges$
       .pipe(takeUntilDestroyed())
       .subscribe((lang) => this.active.set(lang));
@@ -46,11 +43,6 @@ export class LanguageToggle {
 
   setLang(lang: string) {
     this.transloco.setActiveLang(lang);
-    this.active.set(lang);
-    localStorage.setItem(STORAGE_KEY, lang);
-  }
-
-  private browserLang(): string {
-    return navigator.language?.startsWith('pt') ? 'pt' : 'en';
+    localStorage.setItem(LANG_STORAGE_KEY, lang);
   }
 }
