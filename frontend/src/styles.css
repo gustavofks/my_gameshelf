@@ -1,3 +1,29 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles — "Night Shelf" design tokens */
 
 @import 'tailwindcss';
+
+@theme {
+  --color-ink: #0c0e18;
+  --color-panel: #151829;
+  --color-line: #ffffff14;
+  --color-accent: #ffb454;
+  --color-accent-dim: #b37728;
+  --color-ok: #9ece6a;
+  --color-warn: #e0af68;
+  --color-danger: #f7768e;
+  --color-fg: #c8cce0;
+  --color-fg-bright: #eef0fa;
+
+  --font-display: 'Silkscreen', monospace;
+  --font-sans: 'IBM Plex Sans', sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
