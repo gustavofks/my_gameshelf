@@ -180,6 +180,7 @@ frontend/src/app/
       scan-page/               (smart) starts scan, polls status
       scan-progress/           (dumb) bar + status
       scan-issues/             (dumb) issue list
+      folder-picker/           (smart) server directory browser, emits a path
     backlog/  backlog-page/    (WIP placeholder)
     organizer/ organizer-page/ (WIP placeholder)
     settings/ settings-page/   (language toggle functional, rest WIP)
@@ -223,7 +224,28 @@ GamesApiService.list({ platform?, search?, page? })  → GET /games
 PlatformsApiService.list()                            → GET /platforms → [{ slug, name, gameCount }]
 ScanApiService.start(rootPath?)                       → POST /scans → { id }
 ScanApiService.status(id)                             → GET /scans/:id
+FsApiService.directories(path?)                       → GET /fs/directories → { path, parent, dirs }
 ```
+
+**Folder picker.** The scan screen's folder field gets a **Browse** action that
+opens an inline directory browser fed by `GET /fs/directories` (see the backend
+spec): it opens at the server's default ROM root, shows the current path, an
+"up" action and the subdirectory list; picking a directory fills the folder
+field with its absolute path. The field stays editable — typing a path remains
+a first-class fallback. A browser-native folder dialog is not an option here:
+web pages never receive absolute filesystem paths, and the scan runs on the
+backend's filesystem. The picker is a `scan/` feature component (not
+`shared/ui`) because it talks to the API through `FsApiService` — it is smart
+by necessity, and its dumb parts stay inline until something else needs them.
+
+**Picker abstraction.** The scan page does not know how a folder gets picked.
+It depends on an abstract `FolderPickerService` with a single portable
+contract — `pick(): Promise<string | null>` (an absolute path, or null on
+cancel). The default `WebFolderPickerService` fulfils it by toggling the
+inline browser described above. A future desktop shell (e.g. Electron) swaps
+in an implementation that calls the native folder dialog — one provider
+change in `app.config.ts`, no change to the scan page, the scanner, or the
+backend, which remains the owner of all ROM reading per the scanner spec.
 
 The console rail is fed by `GET /platforms`. Its first entry is **All** —
 the default selection at `/library`, showing the whole collection — followed

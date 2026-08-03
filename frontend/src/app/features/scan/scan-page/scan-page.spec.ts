@@ -7,6 +7,10 @@ import {
 } from '@angular/common/http/testing';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { ScanPage } from './scan-page';
+import {
+  FolderPickerService,
+  WebFolderPickerService,
+} from '../folder-picker/folder-picker.service';
 
 describe('ScanPage', () => {
   let http: HttpTestingController;
@@ -24,6 +28,7 @@ describe('ScanPage', () => {
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
+        { provide: FolderPickerService, useClass: WebFolderPickerService },
       ],
     }).compileComponents();
     http = TestBed.inject(HttpTestingController);

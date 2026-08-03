@@ -1,4 +1,11 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, switchMap, takeWhile, timer } from 'rxjs';
 import { ScanApiService } from '../../../core/api/scan-api.service';
@@ -6,11 +13,13 @@ import { ScanJob } from '../../../core/api/api.types';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ScanProgress } from '../scan-progress/scan-progress';
 import { ScanIssues } from '../scan-issues/scan-issues';
+import { FolderPicker } from '../folder-picker/folder-picker';
+import { FolderPickerService } from '../folder-picker/folder-picker.service';
 
 @Component({
   selector: 'app-scan-page',
   standalone: true,
-  imports: [ScanProgress, ScanIssues, TranslocoDirective],
+  imports: [ScanProgress, ScanIssues, TranslocoDirective, FolderPicker],
   template: `
     <div class="mx-auto max-w-3xl p-6" *transloco="let t">
       <h1 class="font-display text-2xl uppercase tracking-widest text-accent">
@@ -27,6 +36,14 @@ import { ScanIssues } from '../scan-issues/scan-issues';
           class="min-w-0 flex-1 rounded border border-line bg-panel px-3 py-2.5 font-sans text-base text-fg placeholder:text-fg/40 focus:border-accent focus-visible:outline focus-visible:outline-accent"
         />
         <button
+          type="button"
+          data-browse
+          (click)="browse()"
+          class="rounded border border-line px-5 py-2.5 font-display text-sm uppercase tracking-widest text-fg transition-colors duration-150 hover:bg-panel"
+        >
+          {{ t('scan.browse') }}
+        </button>
+        <button
           (click)="start(path.value)"
           [disabled]="running()"
           class="rounded bg-accent px-5 py-2.5 font-display text-sm uppercase tracking-widest text-ink hover:brightness-110 disabled:opacity-50"
@@ -34,6 +51,10 @@ import { ScanIssues } from '../scan-issues/scan-issues';
           {{ t('scan.action') }}
         </button>
       </div>
+
+      @if (picker.browsing()) {
+        <app-folder-picker />
+      }
 
       @if (job(); as j) {
         <app-scan-progress
@@ -52,9 +73,22 @@ import { ScanIssues } from '../scan-issues/scan-issues';
 export class ScanPage {
   private api = inject(ScanApiService);
   private destroyRef = inject(DestroyRef);
+  readonly picker = inject(FolderPickerService);
   readonly job = signal<ScanJob | null>(null);
   readonly running = signal(false);
   private poll?: Subscription;
+  private pathInput = viewChild.required<ElementRef<HTMLInputElement>>('path');
+
+  async browse() {
+    if (this.picker.browsing()) {
+      this.picker.resolve(null);
+      return;
+    }
+    const path = await this.picker.pick();
+    if (path) {
+      this.pathInput().nativeElement.value = path;
+    }
+  }
 
   start(rootPath?: string) {
     if (this.running()) return;

@@ -11,6 +11,10 @@ import { routes } from './app.routes';
 import { httpErrorInterceptor } from './core/error/http-error.interceptor';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
 import { initLanguage } from './core/i18n/lang';
+import {
+  FolderPickerService,
+  WebFolderPickerService,
+} from './features/scan/folder-picker/folder-picker.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -27,5 +31,6 @@ export const appConfig: ApplicationConfig = {
       loader: TranslocoHttpLoader,
     }),
     provideAppInitializer(initLanguage),
+    { provide: FolderPickerService, useClass: WebFolderPickerService },
   ],
 };
