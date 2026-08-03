@@ -8,9 +8,9 @@ import { LanguageToggle } from '../language-toggle/language-toggle';
   standalone: true,
   imports: [RouterLink, RouterLinkActive, TranslocoDirective, LanguageToggle],
   template: `
-    <aside class="flex h-full w-52 shrink-0 flex-col border-r border-line bg-ink">
+    <aside class="flex h-full w-64 shrink-0 flex-col border-r border-line bg-ink">
       <div class="px-5 pb-4 pt-6">
-        <span class="font-display text-sm uppercase tracking-widest text-accent">
+        <span class="font-display text-base uppercase tracking-widest text-accent">
           Gameshelf
         </span>
       </div>
@@ -20,7 +20,7 @@ import { LanguageToggle } from '../language-toggle/language-toggle';
             <a
               [routerLink]="item.path"
               routerLinkActive="border-accent bg-panel text-accent"
-              class="border-l-2 border-transparent px-5 py-2.5 font-display text-xs uppercase
+              class="border-l-2 border-transparent px-5 py-3 font-display text-sm uppercase
                 tracking-widest text-fg/70 transition-colors duration-150 ease-out
                 hover:bg-panel hover:text-fg-bright"
             >

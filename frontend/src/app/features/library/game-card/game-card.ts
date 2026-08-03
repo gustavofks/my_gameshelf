@@ -11,18 +11,18 @@ import { Game } from '../../../core/api/api.types';
         hover:shadow-[0_0_0_1px_var(--color-accent),0_8px_24px_#00000066]"
     >
       <div
-        class="flex aspect-[3/4] items-center justify-center p-3 text-center"
+        class="flex aspect-[3/4] items-center justify-center p-4 text-center"
         [class.opacity-40]="game().isMissing"
       >
         <span
-          class="break-words font-display text-xs uppercase leading-relaxed tracking-widest
+          class="break-words font-display text-base uppercase leading-relaxed tracking-widest
             text-fg-bright"
         >
           {{ game().title }}
         </span>
       </div>
       <footer
-        class="flex items-center gap-2 border-t border-line px-2.5 py-1.5 text-[0.65rem]
+        class="flex items-center gap-2 border-t border-line px-2.5 py-1.5 text-sm
           text-fg/60"
       >
         <span>{{ game().region ?? '—' }}</span>

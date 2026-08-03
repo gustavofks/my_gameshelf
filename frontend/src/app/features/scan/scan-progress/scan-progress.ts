@@ -4,7 +4,7 @@ import { Component, computed, input } from '@angular/core';
   selector: 'app-scan-progress',
   standalone: true,
   template: `
-    <div class="mb-2 flex items-center justify-between font-display text-xs uppercase tracking-widest">
+    <div class="mb-2 flex items-center justify-between font-display text-sm uppercase tracking-widest">
       <span
         [class.text-fg]="!done()"
         [class.text-ok]="status() === 'COMPLETED'"
@@ -13,7 +13,7 @@ import { Component, computed, input } from '@angular/core';
       >
       <span class="text-fg">{{ processed() }}/{{ found() }}</span>
     </div>
-    <div class="h-2 overflow-hidden rounded bg-panel border border-line">
+    <div class="h-3 overflow-hidden rounded bg-panel border border-line">
       <div
         data-bar
         class="h-full rounded transition-[width] duration-300"

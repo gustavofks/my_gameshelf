@@ -13,10 +13,10 @@ import { TranslocoDirective } from '@jsverse/transloco';
       <span class="font-display text-xs tracking-widest text-accent-dim" aria-hidden="true">
         &#9626;&#9626;&#9626;
       </span>
-      <h1 class="font-display text-2xl uppercase tracking-widest text-fg-bright">
+      <h1 class="font-display text-3xl uppercase tracking-widest text-fg-bright">
         {{ t(title()) }}
       </h1>
-      <p class="text-sm text-fg/60">
+      <p class="text-base text-fg/60">
         <span class="font-display text-xs uppercase tracking-widest text-accent">[</span>
         {{ t('wip.label') }}
         <span class="font-display text-xs uppercase tracking-widest text-accent">]</span>

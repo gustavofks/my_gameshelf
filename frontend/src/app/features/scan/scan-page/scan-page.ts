@@ -12,11 +12,11 @@ import { ScanIssues } from '../scan-issues/scan-issues';
   standalone: true,
   imports: [ScanProgress, ScanIssues, TranslocoDirective],
   template: `
-    <div class="mx-auto max-w-2xl p-6" *transloco="let t">
-      <h1 class="font-display text-lg uppercase tracking-widest text-accent">
+    <div class="mx-auto max-w-3xl p-6" *transloco="let t">
+      <h1 class="font-display text-2xl uppercase tracking-widest text-accent">
         {{ t('scan.title') }}
       </h1>
-      <p class="mb-6 mt-1 font-sans text-sm text-fg/60">
+      <p class="mb-6 mt-1 font-sans text-base text-fg/60">
         {{ t('scan.subtitle') }}
       </p>
 
@@ -24,12 +24,12 @@ import { ScanIssues } from '../scan-issues/scan-issues';
         <input
           #path
           [placeholder]="t('scan.folder')"
-          class="min-w-0 flex-1 rounded border border-line bg-panel px-3 py-2 font-sans text-sm text-fg placeholder:text-fg/40 focus:border-accent focus-visible:outline focus-visible:outline-accent"
+          class="min-w-0 flex-1 rounded border border-line bg-panel px-3 py-2.5 font-sans text-base text-fg placeholder:text-fg/40 focus:border-accent focus-visible:outline focus-visible:outline-accent"
         />
         <button
           (click)="start(path.value)"
           [disabled]="running()"
-          class="rounded bg-accent px-4 py-2 font-display text-xs uppercase tracking-widest text-ink hover:brightness-110 disabled:opacity-50"
+          class="rounded bg-accent px-5 py-2.5 font-display text-sm uppercase tracking-widest text-ink hover:brightness-110 disabled:opacity-50"
         >
           {{ t('scan.action') }}
         </button>

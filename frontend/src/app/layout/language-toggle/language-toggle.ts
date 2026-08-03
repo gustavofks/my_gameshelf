@@ -12,7 +12,7 @@ import { LANG_STORAGE_KEY } from '../../core/i18n/lang';
         <button
           type="button"
           (click)="setLang(lang)"
-          class="rounded-full px-3 py-1 font-display text-xs uppercase tracking-widest
+          class="rounded-full px-3.5 py-1.5 font-display text-sm uppercase tracking-widest
             transition-colors duration-150 ease-out"
           [class.bg-accent]="active() === lang"
           [class.text-ink]="active() === lang"
