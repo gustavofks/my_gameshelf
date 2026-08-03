@@ -14,7 +14,7 @@ import { PlatformSummary } from '../../../core/api/api.types';
     >
       <a
         routerLink="/library"
-        routerLinkActive="border-accent bg-panel text-accent"
+        routerLinkActive="!border-accent bg-panel !text-accent"
         [routerLinkActiveOptions]="{ exact: true }"
         class="border-l-2 border-transparent px-4 py-2.5 font-display text-sm uppercase
           tracking-widest text-fg/70 transition-colors duration-150 ease-out
@@ -25,7 +25,7 @@ import { PlatformSummary } from '../../../core/api/api.types';
       @for (p of withGames(); track p.slug) {
         <a
           [routerLink]="['/library', p.slug]"
-          routerLinkActive="border-accent bg-panel text-accent"
+          routerLinkActive="!border-accent bg-panel !text-accent"
           class="border-l-2 border-transparent px-4 py-2.5 font-display text-sm uppercase
             tracking-widest text-fg/70 transition-colors duration-150 ease-out
             hover:bg-panel hover:text-fg-bright"

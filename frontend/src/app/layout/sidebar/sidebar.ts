@@ -19,7 +19,7 @@ import { LanguageToggle } from '../language-toggle/language-toggle';
           @for (item of items; track item.path) {
             <a
               [routerLink]="item.path"
-              routerLinkActive="border-accent bg-panel text-accent"
+              routerLinkActive="!border-accent bg-panel !text-accent"
               class="border-l-2 border-transparent px-5 py-3 font-display text-sm uppercase
                 tracking-widest text-fg/70 transition-colors duration-150 ease-out
                 hover:bg-panel hover:text-fg-bright"
