@@ -20,7 +20,7 @@ import { Spinner } from '../../../shared/ui/spinner/spinner';
           <app-game-grid [games]="list.items" />
         } @else {
           <app-empty-state
-            [message]="t('library.noGames')"
+            [message]="store.platform() === null ? t('library.empty') : t('library.noGames')"
             [actionLabel]="t('library.scan')"
             actionLink="/scan"
           />

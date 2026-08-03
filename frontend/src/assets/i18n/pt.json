@@ -6,6 +6,7 @@
     "settings": "Configurações"
   },
   "library": {
+    "all": "Todos",
     "empty": "Sua biblioteca está vazia",
     "pick": "Escolha um console à esquerda",
     "scan": "Escanear agora",

@@ -111,7 +111,7 @@ cross-cutting views over all consoles.
 
 ```
 /                       → redirect to /library
-/library                → console rail + empty state ("pick a console")
+/library                → console rail ("All" pre-selected) + all-games grid
 /library/:platformSlug  → the console's gamelist (search via ?search=)
 /scan                   → scan screen (folder, progress, issues)
 /backlog                → WIP placeholder (contract: ?platform=&status=)
@@ -225,10 +225,11 @@ ScanApiService.start(rootPath?)                       → POST /scans → { id }
 ScanApiService.status(id)                             → GET /scans/:id
 ```
 
-The console rail is fed by `GET /platforms` and shows only platforms with
-`gameCount > 0` (ESDE-style: you see the consoles your collection actually has).
-An empty library therefore shows an empty rail, which routes into the scan
-onboarding.
+The console rail is fed by `GET /platforms`. Its first entry is **All** —
+the default selection at `/library`, showing the whole collection — followed
+by only the platforms with `gameCount > 0` (ESDE-style: you see the consoles
+your collection actually has). An empty library shows the rail with just
+"All" and the grid area routes into the scan onboarding.
 
 In development, `ng serve` uses a **proxy** (`proxy.conf.json`) mapping `/games`
 and `/scans` to `localhost:3000`, so the API URL stays relative — no CORS, no

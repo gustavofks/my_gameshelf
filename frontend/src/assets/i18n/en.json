@@ -6,6 +6,7 @@
     "settings": "Settings"
   },
   "library": {
+    "all": "All",
     "empty": "Your library is empty",
     "pick": "Pick a console from the left",
     "scan": "Scan now",
