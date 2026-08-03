@@ -1,5 +1,6 @@
 {
   "/games": { "target": "http://localhost:3000", "secure": false },
   "/platforms": { "target": "http://localhost:3000", "secure": false },
-  "/scans": { "target": "http://localhost:3000", "secure": false }
+  "/scans": { "target": "http://localhost:3000", "secure": false },
+  "/fs": { "target": "http://localhost:3000", "secure": false }
 }

@@ -52,3 +52,14 @@ export interface GameListQuery {
   search?: string;
   page?: number;
 }
+
+export interface DirectoryEntry {
+  name: string;
+  path: string;
+}
+
+export interface DirectoryListing {
+  path: string | null;
+  parent: string | null;
+  dirs: DirectoryEntry[];
+}
