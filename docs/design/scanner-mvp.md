@@ -301,6 +301,7 @@ no migration has to invent an owner for existing rows.
 | `GET`  | `/scans/:id` | `{ status, filesFound, filesProcessed, errorMessage, issues[] }` |
 | `GET`  | `/games?platform=&search=&page=` | paginated catalog |
 | `GET`  | `/platforms` | `[{ slug, name, gameCount }]` for the current user |
+| `GET`  | `/fs/directories?path=` | `{ path, parent, dirs: [{ name, path }] }` |
 
 `GET /platforms` lists the platforms with their catalogued game count, so the
 frontend's console rail can show the consoles that actually have games. It is a
@@ -310,6 +311,23 @@ read model over `Platform` + a per-user `Game` count, scoped to the fixed user.
 back to the `ROMS_ROOT_PATH` environment variable. The path is user-supplied and
 validated only for readability — acceptable for a local single-user tool, and
 noted as a surface to revisit before any multi-user or hosted deployment.
+
+`GET /fs/directories` feeds the frontend's folder picker on the scan screen. It
+is **read-only** and lists **directories only** (never files):
+
+- Without `path`: returns the listing of `ROMS_ROOT_PATH` when configured and
+  readable, otherwise the filesystem roots (on Windows, the available drive
+  letters as `dirs`, with `path` and `parent` both `null`).
+- With `path`: returns that directory's subdirectories, its normalized absolute
+  `path`, and its `parent` (`null` at a filesystem root).
+- A nonexistent or unreadable `path` is a `400`; subdirectories the process
+  cannot read are silently omitted; entries are sorted by name.
+
+Browsing is intentionally unrestricted because the backend runs on the user's
+own machine and `POST /scans` already accepts an arbitrary path — the picker
+adds no capability that typing a path did not already have. Like the scan-path
+rule above, this **must be revisited before any multi-user or hosted
+deployment** (restrict to configured roots, per-user allowlists).
 
 ### Happy path
 
