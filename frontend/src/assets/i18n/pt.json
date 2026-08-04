@@ -20,10 +20,22 @@
     "folder": "Pasta (opcional, vazio = padrão do servidor)",
     "browse": "Procurar",
     "select": "Usar esta pasta",
-    "up": "Subir"
+    "up": "Subir",
+    "completedIssues": "Scan concluído com avisos",
+    "failed": "O scan falhou"
+  },
+  "game": {
+    "disc": "Disco",
+    "missing": "faltando"
   },
   "settings": {
     "language": "Idioma"
+  },
+  "errors": {
+    "apiUnavailable": "API indisponível",
+    "scanRunning": "Já existe um scan em andamento",
+    "unexpected": "Erro inesperado",
+    "requestFailed": "A requisição falhou"
   },
   "wip": {
     "label": "Trabalho em andamento"

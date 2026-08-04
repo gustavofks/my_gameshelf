@@ -7,6 +7,7 @@ import {
 } from '@angular/common/http/testing';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { ScanPage } from './scan-page';
+import { NotificationService } from '../../../core/notification/notification.service';
 import {
   FolderPickerService,
   WebFolderPickerService,
@@ -55,5 +56,75 @@ describe('ScanPage', () => {
     });
 
     expect(fixture.componentInstance.job()?.status).toBe('COMPLETED');
+  });
+
+  it('re-enables the scan button when starting the scan fails', () => {
+    const fixture = TestBed.createComponent(ScanPage);
+    fixture.detectChanges();
+    fixture.componentInstance.start();
+    expect(fixture.componentInstance.running()).toBe(true);
+
+    http
+      .expectOne('/scans')
+      .flush(
+        { message: 'bad path' },
+        { status: 400, statusText: 'Bad Request' },
+      );
+
+    expect(fixture.componentInstance.running()).toBe(false);
+  });
+
+  it('raises a warning toast when the scan completes with issues', async () => {
+    const fixture = TestBed.createComponent(ScanPage);
+    fixture.detectChanges();
+    fixture.componentInstance.start();
+
+    http.expectOne('/scans').flush({ id: 'j1', status: 'PENDING' });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    http.expectOne('/scans/j1').flush({
+      id: 'j1',
+      status: 'COMPLETED',
+      filesFound: 2,
+      filesProcessed: 2,
+      errorMessage: null,
+      issues: [
+        {
+          severity: 'WARNING',
+          code: 'UNKNOWN_EXTENSION',
+          filePath: 'roms/x.xyz',
+          message: 'Unknown file extension',
+        },
+      ],
+    });
+
+    const toasts = TestBed.inject(NotificationService).toasts();
+    expect(
+      toasts.some(
+        (t) =>
+          t.severity === 'warning' && t.message === 'scan.completedIssues',
+      ),
+    ).toBe(true);
+  });
+
+  it('raises an error toast when the scan fails', async () => {
+    const fixture = TestBed.createComponent(ScanPage);
+    fixture.detectChanges();
+    fixture.componentInstance.start();
+
+    http.expectOne('/scans').flush({ id: 'j1', status: 'PENDING' });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    http.expectOne('/scans/j1').flush({
+      id: 'j1',
+      status: 'FAILED',
+      filesFound: 0,
+      filesProcessed: 0,
+      errorMessage: 'boom',
+      issues: [],
+    });
+
+    const toasts = TestBed.inject(NotificationService).toasts();
+    expect(
+      toasts.some((t) => t.severity === 'error' && t.message === 'scan.failed'),
+    ).toBe(true);
   });
 });

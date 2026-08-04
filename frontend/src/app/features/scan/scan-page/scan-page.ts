@@ -10,7 +10,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription, switchMap, takeWhile, timer } from 'rxjs';
 import { ScanApiService } from '../../../core/api/scan-api.service';
 import { ScanJob } from '../../../core/api/api.types';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { NotificationService } from '../../../core/notification/notification.service';
 import { ScanProgress } from '../scan-progress/scan-progress';
 import { ScanIssues } from '../scan-issues/scan-issues';
 import { FolderPicker } from '../folder-picker/folder-picker';
@@ -73,6 +74,8 @@ import { FolderPickerService } from '../folder-picker/folder-picker.service';
 export class ScanPage {
   private api = inject(ScanApiService);
   private destroyRef = inject(DestroyRef);
+  private notify = inject(NotificationService);
+  private transloco = inject(TranslocoService);
   readonly picker = inject(FolderPickerService);
   readonly job = signal<ScanJob | null>(null);
   readonly running = signal(false);
@@ -93,8 +96,9 @@ export class ScanPage {
   start(rootPath?: string) {
     if (this.running()) return;
     this.running.set(true);
-    this.api.start(rootPath?.trim() || undefined).subscribe((created) => {
-      this.pollUntilDone(created.id);
+    this.api.start(rootPath?.trim() || undefined).subscribe({
+      next: (created) => this.pollUntilDone(created.id),
+      error: () => this.running.set(false),
     });
   }
 
@@ -110,6 +114,13 @@ export class ScanPage {
         this.job.set(j);
         if (j.status === 'COMPLETED' || j.status === 'FAILED') {
           this.running.set(false);
+          if (j.status === 'FAILED') {
+            this.notify.error(this.transloco.translate('scan.failed'));
+          } else if (j.issues.length > 0) {
+            this.notify.warning(
+              this.transloco.translate('scan.completedIssues'),
+            );
+          }
         }
       });
   }

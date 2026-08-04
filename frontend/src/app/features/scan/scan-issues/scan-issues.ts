@@ -13,7 +13,10 @@ import { ScanIssue } from '../../../core/api/api.types';
             [class.text-danger]="issue.severity === 'ERROR'"
             [class.text-warn]="issue.severity === 'WARNING'"
           >
-            {{ issue.code }} — {{ issue.filePath }}
+            {{ issue.message }}
+            @if (issue.filePath) {
+              <span class="opacity-60">— {{ issue.filePath }}</span>
+            }
           </li>
         }
       </ul>
