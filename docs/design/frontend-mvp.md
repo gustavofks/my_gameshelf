@@ -43,6 +43,8 @@ can support are functional.
 | Backlog (saves, playtime, ratings) | save detection + platform extraction | backend phase 4 |
 | Organizer suggestions by genre/series | genre metadata | phase 3+ |
 | Organizer that **moves files** | writing to disk | future — see note |
+| Desktop shell (Electron) with the native OS folder dialog | packaging a desktop build; swaps the `FolderPickerService` provider | future — own plan |
+| Manual game entry | backend design: scanner is the source of truth today | future — own plan |
 
 **Note on the file-moving organizer.** The MVP backend mounts the ROM folder
 **read-only** and never writes to it, by design, to never corrupt the
