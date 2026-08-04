@@ -1,11 +1,14 @@
 import { Component, input } from '@angular/core';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { Game } from '../../../core/api/api.types';
 
 @Component({
   selector: 'app-game-card',
   standalone: true,
+  imports: [TranslocoDirective],
   template: `
     <article
+      *transloco="let t"
       class="group overflow-hidden rounded-lg border border-line bg-panel
         transition duration-150 ease-out hover:-translate-y-0.5 hover:border-accent/60
         hover:shadow-[0_0_0_1px_var(--color-accent),0_8px_24px_#00000066]"
@@ -27,14 +30,14 @@ import { Game } from '../../../core/api/api.types';
       >
         <span>{{ game().region ?? '—' }}</span>
         @if (game().discNumber) {
-          <span>Disc {{ game().discNumber }}</span>
+          <span>{{ t('game.disc') }} {{ game().discNumber }}</span>
         }
         @if (game().isMissing) {
           <span
             data-missing
             class="ml-auto font-display text-[0.6rem] uppercase tracking-widest text-danger"
           >
-            missing
+            {{ t('game.missing') }}
           </span>
         }
       </footer>

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 import { GameCard } from './game-card';
 import { Game } from '../../../core/api/api.types';
 
@@ -16,8 +17,19 @@ const game: Game = {
 };
 
 describe('GameCard', () => {
-  it('shows the title as the cover placeholder and the region', async () => {
-    await TestBed.configureTestingModule({ imports: [GameCard] }).compileComponents();
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [
+        GameCard,
+        TranslocoTestingModule.forRoot({
+          langs: { en: {} },
+          translocoConfig: { availableLangs: ['en', 'pt'], defaultLang: 'en' },
+        }),
+      ],
+    }).compileComponents();
+  });
+
+  it('shows the title as the cover placeholder and the region', () => {
     const fixture = TestBed.createComponent(GameCard);
     fixture.componentRef.setInput('game', game);
     fixture.detectChanges();
@@ -26,12 +38,14 @@ describe('GameCard', () => {
     expect(text).toContain('USA');
   });
 
-  it('marks a missing game', async () => {
-    await TestBed.configureTestingModule({ imports: [GameCard] }).compileComponents();
+  it('marks a missing game', () => {
     const fixture = TestBed.createComponent(GameCard);
     fixture.componentRef.setInput('game', { ...game, isMissing: true });
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('[data-missing]')).not.toBeNull();
+    const badge = el.querySelector('[data-missing]');
+    expect(badge).not.toBeNull();
+    // Empty test langs echo the key back, proving the label is translated.
+    expect(badge?.textContent?.trim()).toBe('game.missing');
   });
 });
