@@ -10,11 +10,11 @@ function toNumber(value?: string): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-@Controller('games')
+@Controller()
 export class LibraryController {
   constructor(private readonly library: LibraryService) {}
 
-  @Get()
+  @Get('games')
   list(
     @Query('platform') platform?: string,
     @Query('search') search?: string,
@@ -27,5 +27,10 @@ export class LibraryController {
       page: toNumber(page),
       pageSize: toNumber(pageSize),
     });
+  }
+
+  @Get('platforms')
+  listPlatforms() {
+    return this.library.listPlatforms();
   }
 }

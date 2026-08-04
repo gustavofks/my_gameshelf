@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "library": "Biblioteca",
+    "backlog": "Backlog",
+    "organizer": "Organizador",
+    "settings": "Configurações"
+  },
+  "library": {
+    "all": "Todos",
+    "empty": "Sua biblioteca está vazia",
+    "pick": "Escolha um console à esquerda",
+    "scan": "Escanear agora",
+    "failed": "Falha ao carregar os jogos",
+    "noGames": "Nenhum jogo aqui ainda"
+  },
+  "scan": {
+    "title": "Escanear",
+    "subtitle": "Indexe suas pastas de ROMs na biblioteca",
+    "action": "Escanear",
+    "folder": "Pasta (opcional, vazio = padrão do servidor)",
+    "browse": "Procurar",
+    "select": "Usar esta pasta",
+    "up": "Subir",
+    "completedIssues": "Scan concluído com avisos",
+    "failed": "O scan falhou"
+  },
+  "game": {
+    "disc": "Disco",
+    "missing": "faltando"
+  },
+  "settings": {
+    "language": "Idioma"
+  },
+  "errors": {
+    "apiUnavailable": "API indisponível",
+    "scanRunning": "Já existe um scan em andamento",
+    "unexpected": "Erro inesperado",
+    "requestFailed": "A requisição falhou"
+  },
+  "wip": {
+    "label": "Trabalho em andamento"
+  }
+}

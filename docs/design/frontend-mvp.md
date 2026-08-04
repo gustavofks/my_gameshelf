@@ -43,6 +43,8 @@ can support are functional.
 | Backlog (saves, playtime, ratings) | save detection + platform extraction | backend phase 4 |
 | Organizer suggestions by genre/series | genre metadata | phase 3+ |
 | Organizer that **moves files** | writing to disk | future — see note |
+| Desktop shell (Electron) with the native OS folder dialog | packaging a desktop build; swaps the `FolderPickerService` provider | future — own plan |
+| Manual game entry | backend design: scanner is the source of truth today | future — own plan |
 
 **Note on the file-moving organizer.** The MVP backend mounts the ROM folder
 **read-only** and never writes to it, by design, to never corrupt the
@@ -111,7 +113,7 @@ cross-cutting views over all consoles.
 
 ```
 /                       → redirect to /library
-/library                → console rail + empty state ("pick a console")
+/library                → console rail ("All" pre-selected) + all-games grid
 /library/:platformSlug  → the console's gamelist (search via ?search=)
 /scan                   → scan screen (folder, progress, issues)
 /backlog                → WIP placeholder (contract: ?platform=&status=)
@@ -180,6 +182,7 @@ frontend/src/app/
       scan-page/               (smart) starts scan, polls status
       scan-progress/           (dumb) bar + status
       scan-issues/             (dumb) issue list
+      folder-picker/           (smart) server directory browser, emits a path
     backlog/  backlog-page/    (WIP placeholder)
     organizer/ organizer-page/ (WIP placeholder)
     settings/ settings-page/   (language toggle functional, rest WIP)
@@ -223,12 +226,34 @@ GamesApiService.list({ platform?, search?, page? })  → GET /games
 PlatformsApiService.list()                            → GET /platforms → [{ slug, name, gameCount }]
 ScanApiService.start(rootPath?)                       → POST /scans → { id }
 ScanApiService.status(id)                             → GET /scans/:id
+FsApiService.directories(path?)                       → GET /fs/directories → { path, parent, dirs }
 ```
 
-The console rail is fed by `GET /platforms` and shows only platforms with
-`gameCount > 0` (ESDE-style: you see the consoles your collection actually has).
-An empty library therefore shows an empty rail, which routes into the scan
-onboarding.
+**Folder picker.** The scan screen's folder field gets a **Browse** action that
+opens an inline directory browser fed by `GET /fs/directories` (see the backend
+spec): it opens at the server's default ROM root, shows the current path, an
+"up" action and the subdirectory list; picking a directory fills the folder
+field with its absolute path. The field stays editable — typing a path remains
+a first-class fallback. A browser-native folder dialog is not an option here:
+web pages never receive absolute filesystem paths, and the scan runs on the
+backend's filesystem. The picker is a `scan/` feature component (not
+`shared/ui`) because it talks to the API through `FsApiService` — it is smart
+by necessity, and its dumb parts stay inline until something else needs them.
+
+**Picker abstraction.** The scan page does not know how a folder gets picked.
+It depends on an abstract `FolderPickerService` with a single portable
+contract — `pick(): Promise<string | null>` (an absolute path, or null on
+cancel). The default `WebFolderPickerService` fulfils it by toggling the
+inline browser described above. A future desktop shell (e.g. Electron) swaps
+in an implementation that calls the native folder dialog — one provider
+change in `app.config.ts`, no change to the scan page, the scanner, or the
+backend, which remains the owner of all ROM reading per the scanner spec.
+
+The console rail is fed by `GET /platforms`. Its first entry is **All** —
+the default selection at `/library`, showing the whole collection — followed
+by only the platforms with `gameCount > 0` (ESDE-style: you see the consoles
+your collection actually has). An empty library shows the rail with just
+"All" and the grid area routes into the scan onboarding.
 
 In development, `ng serve` uses a **proxy** (`proxy.conf.json`) mapping `/games`
 and `/scans` to `localhost:3000`, so the API URL stays relative — no CORS, no

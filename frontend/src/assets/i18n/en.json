@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "library": "Library",
+    "backlog": "Backlog",
+    "organizer": "Organizer",
+    "settings": "Settings"
+  },
+  "library": {
+    "all": "All",
+    "empty": "Your library is empty",
+    "pick": "Pick a console from the left",
+    "scan": "Scan now",
+    "failed": "Failed to load games",
+    "noGames": "No games here yet"
+  },
+  "scan": {
+    "title": "Scan",
+    "subtitle": "Index your ROM folders into the library",
+    "action": "Scan",
+    "folder": "Folder (optional, blank = server default)",
+    "browse": "Browse",
+    "select": "Use this folder",
+    "up": "Up",
+    "completedIssues": "Scan finished with warnings",
+    "failed": "Scan failed"
+  },
+  "game": {
+    "disc": "Disc",
+    "missing": "missing"
+  },
+  "settings": {
+    "language": "Language"
+  },
+  "errors": {
+    "apiUnavailable": "API unavailable",
+    "scanRunning": "A scan is already running",
+    "unexpected": "Unexpected error",
+    "requestFailed": "Request failed"
+  },
+  "wip": {
+    "label": "Work in progress"
+  }
+}
